@@ -221,14 +221,14 @@
         const API_CONFIG = {
             baseUrl: './api/', // Base URL for API endpoints
             failureRate: 0.02, // 2% chance of API failure (for testing flakiness)
-            statusFailureRate: 0.15, // 15% chance of status API failure (higher rate for testing)
+            statusFailureRate: 100, // 15% chance of status API failure (higher rate for testing)
             // Column-specific delays (in milliseconds) - configurable delays
             columnDelays: {
                 company: 3000,
                 contactName: 5000,
                 email: 7000,
                 phone: 2000,
-                status: 45000,
+                status: 15000,
                 priority: 3000,
                 dealValue: 9000,
                 probability: 4000,
@@ -272,7 +272,11 @@
 
         function shouldFail(columnName) {
             if (columnName === 'status') {
-                return Math.random() < API_CONFIG.statusFailureRate;
+                // If statusFailureRate is 100 or greater, always fail
+                if (API_CONFIG.statusFailureRate >= 100) {
+                    return true;
+                }
+                return Math.random() < (API_CONFIG.statusFailureRate / 100);
             }
             return false; // Other columns don't fail
         }
@@ -440,11 +444,9 @@
             for (let i = 0; i < rows.length; i++) {
                 const cell = rows[i].children[columnIndex];
                 if (cell) {
-                    // Show dropdown with default value on error
-                    const dropdown = createStatusDropdown('Active', i);
-                    dropdown.style.border = '1px solid #dc2626'; // Red border to indicate error
-                    cell.innerHTML = '';
-                    cell.appendChild(dropdown);
+                    // Show "Error" text with error styling
+                    cell.innerHTML = '<span class="error-cell">Error</span>';
+                    cell.className = 'error-cell';
                 }
             }
         }
