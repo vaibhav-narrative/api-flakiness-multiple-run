@@ -363,8 +363,11 @@
                         formattedData = `<span class="phone-number">${data}</span>`;
                         break;
                     case 'status':
-                        formattedData = `<span class="status-badge status-${data.toLowerCase()} clickable-status" onclick="makeStatusEditable(this, '${data}', ${rowIndex})">${data}</span>`;
-                        break;
+                        // Create dropdown directly instead of badge
+                        const dropdown = createStatusDropdown(data, rowIndex);
+                        cell.innerHTML = '';
+                        cell.appendChild(dropdown);
+                        continue; // Skip the normal innerHTML assignment
                     case 'priority':
                         formattedData = `<span class="priority-${data.toLowerCase()}">${data}</span>`;
                         break;
@@ -415,23 +418,15 @@
             });
 
             select.addEventListener('change', function() {
-                // Update the display to show the selected status
-                const cell = this.parentElement;
-                const selectedValue = this.value;
-                cell.innerHTML = `<span class="status-badge status-${selectedValue.toLowerCase()} clickable-status" onclick="makeStatusEditable(this, '${selectedValue}', ${rowIndex})">${selectedValue}</span>`;
+                // The dropdown itself stays, just update the value
+                // No need to change the display since we keep the dropdown
+                console.log(`Status changed to: ${this.value} for row ${rowIndex}`);
             });
 
             return select;
         }
 
-        // Show dropdown immediately when status is clicked
-        function makeStatusEditable(element, currentValue, rowIndex) {
-            const cell = element.parentElement;
-            const dropdown = createStatusDropdown(currentValue, rowIndex);
-            cell.innerHTML = '';
-            cell.appendChild(dropdown);
-            dropdown.focus();
-        }
+
 
         // Show error in status column only
         function showColumnError(columnName, error) {
@@ -445,8 +440,9 @@
             for (let i = 0; i < rows.length; i++) {
                 const cell = rows[i].children[columnIndex];
                 if (cell) {
-                    // Show dropdown immediately on error so user can select status
+                    // Show dropdown with default value on error
                     const dropdown = createStatusDropdown('Active', i);
+                    dropdown.style.border = '1px solid #dc2626'; // Red border to indicate error
                     cell.innerHTML = '';
                     cell.appendChild(dropdown);
                 }
