@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: white;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 16px;
+        }
+
+        .table-container {
+            background: white;
+            overflow: hidden;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            table-layout: fixed;
+        }
+
+        th {
+            background: white;
+            padding: 16px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #000;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th:nth-child(1) { width: 12%; } /* Company */
+        th:nth-child(2) { width: 14%; } /* Contact Name */
+        th:nth-child(3) { width: 18%; } /* Email */
+        th:nth-child(4) { width: 12%; } /* Phone */
+        th:nth-child(5) { width: 8%; }  /* Status */
+        th:nth-child(6) { width: 8%; }  /* Priority */
+        th:nth-child(7) { width: 10%; } /* Deal Value */
+        th:nth-child(8) { width: 8%; }  /* Probability */
+        th:nth-child(9) { width: 10%; } /* Industry */
+        th:nth-child(10) { width: 10%; } /* Last Contact */
+
+        td {
+            padding: 16px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-inactive { background: #fef2f2; color: #dc2626; }
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-qualified { background: #dbeafe; color: #2563eb; }
+        .status-converted { background: #f3e8ff; color: #7c3aed; }
+
+        .clickable-status {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .clickable-status:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        .clickable-status:hover::after {
+            content: "▼";
+            position: absolute;
+            right: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 8px;
+            opacity: 0.7;
+        }
+
+        .loading {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .company-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: #6366f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .email-link {
+            color: #6366f1;
+            text-decoration: none;
+        }
+
+        .email-link:hover {
+            text-decoration: underline;
+        }
+
+        .loading-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #6366f1;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .error-cell {
+            background: #fef2f2;
+            color: #dc2626;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="table-container">
+            <div class="table-wrapper">
+                <table id="crmTable">
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Contact Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Deal Value</th>
+                            <th>Probability</th>
+                            <th>Industry</th>
+                            <th>Last Contact</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Dynamic content will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        Loading data...
+    </div>
+
+    <script>
+        // Configuration for API delays
+        const API_CONFIG = {
+            baseUrl: './api/', // Base URL for API endpoints
+            failureRate: 0.02, // 2% chance of API failure (for testing flakiness)
+            statusFailureRate: 0.15, // 15% chance of status API failure (higher rate for testing)
+            // Column-specific delays (in milliseconds) - configurable delays
+            columnDelays: {
+                company: 3000,
+                contactName: 5000,
+                email: 7000,
+                phone: 2000,
+                status: 8000,
+                priority: 3000,
+                dealValue: 9000,
+                probability: 4000,
+                industry: 6000,
+                lastContact: 7000
+            }
+        };
+
+        // Column configuration with their respective JSON files
+        const COLUMN_CONFIG = {
+            company: { file: 'companies.json', key: 'companies' },
+            contactName: { file: 'contacts.json', key: 'contacts' },
+            email: { file: 'emails.json', key: 'emails' },
+            phone: { file: 'phones.json', key: 'phones' },
+            status: { file: 'statuses.json', key: 'statuses' },
+            priority: { file: 'priorities.json', key: 'priorities' },
+            dealValue: { file: 'deal_values.json', key: 'dealValues' },
+            probability: { file: 'probabilities.json', key: 'probabilities' },
+            industry: { file: 'industries.json', key: 'industries' },
+            lastContact: { file: 'last_contacts.json', key: 'lastContacts' }
+        };
+
+        // Global status options for dropdown
+        let STATUS_OPTIONS = ['Active', 'Pending', 'Qualified', 'Converted', 'Inactive'];
+
+        // Utility functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            return new Intl.DateTimeFormat('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            }).format(new Date(dateString));
+        }
+
+        function shouldFail(columnName) {
+            if (columnName === 'status') {
+                return Math.random() < API_CONFIG.statusFailureRate;
+            }
+            return false; // Other columns don't fail
+        }
+
+        // Real API call function
+        async function fetchColumnData(columnName) {
+            const config = COLUMN_CONFIG[columnName];
+            const delay = API_CONFIG.columnDelays[columnName] || 300;
+            
+            return new Promise(async (resolve, reject) => {
+                // Apply configurable delay
+                setTimeout(async () => {
+                    try {
+                        // Simulate API failure for testing (only for status column)
+                        if (shouldFail(columnName)) {
+                            reject(new Error(`API call failed for column ${columnName}`));
+                            return;
+                        }
+
+                        // Make real fetch call
+                        const response = await fetch(`${API_CONFIG.baseUrl}${config.file}`);
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        resolve(data[config.key] || []);
+                        
+                    } catch (error) {
+                        reject(error);
+                    }
+                }, delay);
+            });
+        }
+
+        // Generate initial loading skeleton
+        function generateLoadingSkeleton() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            for (let i = 0; i < 60; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><div class="loading"></div></td>
+                    <td><div class="loading"></div></td>
+                    <td><div class="loading"></div></td>
+                    <td><div class="loading"></div></td>
+                    <td><div class="loading"></div></td>
+                    <td><div class="loading"></div></td>
+                    <td><div class="loading"></div></td>
+                    <td><div class="loading"></div></td>
+                    <td><div class="loading"></div></td>
+                    <td><div class="loading"></div></td>
+                `;
+                tbody.appendChild(row);
+            }
+        }
+
+        // Update entire column when data arrives
+        function updateColumn(columnName, columnData) {
+            const tbody = document.getElementById('tableBody');
+            const columns = Object.keys(COLUMN_CONFIG);
+            const columnIndex = columns.indexOf(columnName);
+            
+            for (let rowIndex = 0; rowIndex < columnData.length; rowIndex++) {
+                const row = tbody.children[rowIndex];
+                if (!row) continue;
+
+                const cell = row.children[columnIndex];
+                if (!cell) continue;
+
+                const data = columnData[rowIndex];
+                let formattedData;
+
+                // Format the data based on column type
+                switch (columnName) {
+                    case 'company':
+                        formattedData = `<span style="font-weight: normal;">${data}</span>`;
+                        break;
+                    case 'contactName':
+                        formattedData = `<span style="font-weight: normal;">${data}</span>`;
+                        break;
+                    case 'email':
+                        formattedData = `<a href="mailto:${data}" class="email-link">${data}</a>`;
+                        break;
+                    case 'phone':
+                        formattedData = `<span class="phone-number">${data}</span>`;
+                        break;
+                    case 'status':
+                        formattedData = `<span class="status-badge status-${data.toLowerCase()} clickable-status" onclick="makeStatusEditable(this, '${data}', ${rowIndex})">${data}</span>`;
+                        break;
+                    case 'priority':
+                        formattedData = `<span class="priority-${data.toLowerCase()}">${data}</span>`;
+                        break;
+                    case 'dealValue':
+                        formattedData = `<span class="currency">${formatCurrency(data)}</span>`;
+                        break;
+                    case 'probability':
+                        formattedData = `<span class="percentage">${data}%</span>`;
+                        break;
+                    case 'industry':
+                        formattedData = `<span style="font-weight: normal;">${data}</span>`;
+                        break;
+                    case 'lastContact':
+                        formattedData = `<span class="date">${formatDate(data)}</span>`;
+                        break;
+                    default:
+                        formattedData = data;
+                }
+
+                cell.innerHTML = formattedData;
+            }
+        }
+
+
+
+        // Create status dropdown
+        function createStatusDropdown(currentValue, rowIndex) {
+            const select = document.createElement('select');
+            select.className = 'status-select';
+            select.style.cssText = `
+                padding: 4px 8px;
+                border-radius: 6px;
+                border: 1px solid #e2e8f0;
+                background: white;
+                font-size: 13px;
+                cursor: pointer;
+                width: 100%;
+            `;
+            
+            STATUS_OPTIONS.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                if (option === currentValue) {
+                    optionElement.selected = true;
+                }
+                select.appendChild(optionElement);
+            });
+
+            select.addEventListener('change', function() {
+                // Update the display to show the selected status
+                const cell = this.parentElement;
+                const selectedValue = this.value;
+                cell.innerHTML = `<span class="status-badge status-${selectedValue.toLowerCase()} clickable-status" onclick="makeStatusEditable(this, '${selectedValue}', ${rowIndex})">${selectedValue}</span>`;
+            });
+
+            return select;
+        }
+
+        // Show dropdown immediately when status is clicked
+        function makeStatusEditable(element, currentValue, rowIndex) {
+            const cell = element.parentElement;
+            const dropdown = createStatusDropdown(currentValue, rowIndex);
+            cell.innerHTML = '';
+            cell.appendChild(dropdown);
+            dropdown.focus();
+        }
+
+        // Show error in status column only
+        function showColumnError(columnName, error) {
+            if (columnName !== 'status') return; // Only show errors for status column
+            
+            const tbody = document.getElementById('tableBody');
+            const columns = Object.keys(COLUMN_CONFIG);
+            const columnIndex = columns.indexOf(columnName);
+            
+            const rows = tbody.children;
+            for (let i = 0; i < rows.length; i++) {
+                const cell = rows[i].children[columnIndex];
+                if (cell) {
+                    // Show dropdown immediately on error so user can select status
+                    const dropdown = createStatusDropdown('Active', i);
+                    cell.innerHTML = '';
+                    cell.appendChild(dropdown);
+                }
+            }
+        }
+
+        // Load data for all columns
+        async function loadTableData() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            loadingIndicator.style.display = 'block';
+
+            try {
+                const columns = Object.keys(COLUMN_CONFIG);
+                
+                // Create promises for each column
+                const columnPromises = columns.map(columnName => {
+                    return fetchColumnData(columnName)
+                        .then(columnData => {
+                            // Update STATUS_OPTIONS if we successfully loaded status data
+                            if (columnName === 'status' && columnData.length > 0) {
+                                STATUS_OPTIONS = [...new Set(columnData)]; // Get unique values
+                            }
+                            updateColumn(columnName, columnData);
+                            return { columnName, columnData };
+                        })
+                        .catch(error => {
+                            console.error(`Failed to load ${columnName}:`, error);
+                            showColumnError(columnName, error);
+                            return { columnName, columnData: [], error };
+                        });
+                });
+
+                // Wait for all columns to load
+                await Promise.all(columnPromises);
+                
+            } catch (error) {
+                console.error('Error loading table data:', error);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            generateLoadingSkeleton();
+            loadTableData();
+        });
+    </script>
+</body>
+</html>
