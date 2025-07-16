@@ -221,7 +221,7 @@
         const API_CONFIG = {
             baseUrl: './api/', // Base URL for API endpoints
             failureRate: 0.02, // 2% chance of API failure (for testing flakiness)
-            statusFailureRate: 100, // 15% chance of status API failure (higher rate for testing)
+            statusFailureRate: 0, // 15% chance of status API failure (higher rate for testing)
             // Column-specific delays (in milliseconds) - configurable delays
             columnDelays: {
                 company: 3000,
